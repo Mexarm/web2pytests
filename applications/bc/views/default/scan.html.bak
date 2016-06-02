@@ -1,0 +1,40 @@
+{{extend 'layout.html'}}
+<h3>
+    Captura de Código de Barras
+</h3>
+<div>
+{{if sesion.estado == 'escaneando':}}
+
+{{ =form }}
+
+{{else:}}
+
+    <h3>
+        Sesion Cerrada!
+    </h3>
+
+{{pass}}
+ </div>
+<p>
+    Piezas Escaneadas en la sesion: <big><b>{{=str(count) }}</b></big> </p>
+<p>
+    Session Actual: <i> <b>{{=str(sesion.id) + ' ' + sesion.descripcion }} </b> </i><br>
+    Tipo Sesion: <i>{{=db.tiposesion(sesion.tiposesion).descripcion}} </i>
+    Expresion: <i>{{=db.tiposesion(sesion.tiposesion).expresion}}</i>
+</p>
+<hr>
+<div>
+    Ultimos escaneos:
+    </div>
+<div class="well">
+<table>
+    {{ for row in rows :}}
+<tr><td><i><small>{{=str(prettydate(row.modified_on))}}</small></i></td><td><b>{{=str(row.codigo)}}</b></td></tr>
+
+{{pass}}
+
+    </table>
+   
+
+</div>
+ <a href="{{=URL('cerrar_sesion')}}">Terminar de Escanear</a>

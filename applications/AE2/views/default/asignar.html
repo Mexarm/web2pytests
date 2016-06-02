@@ -1,0 +1,20 @@
+{{extend 'layout.html'}}
+<h1>Asignar </h1> <br>
+<h2>
+    Job: {{ =jobid}} <br>
+    Comunicacion {{= str(i) +' de '+ str(total) }} <br>  <p style="color: red;">
+    {{=comunicacion.nombre}}
+    </p>
+    <br>
+    Frecuencia = {{=comunicacion.frecuencia}}
+</h2><div>
+<a href={{=URL('asignar',args=cidprev)}}> << </a>  <a href={{=URL('asignar',args=cidnext)}}> >> </a> 
+</div>
+<div class="well">
+{{=form}}
+    
+    <H2>
+       SUBMITTED VARS 
+    </h2>
+    {{=BEAUTIFY(request.vars)}}
+</div>

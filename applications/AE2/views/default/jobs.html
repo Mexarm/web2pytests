@@ -1,0 +1,18 @@
+{{extend 'layout.html'}}
+<h1>Lista de Jobs</h1>
+
+<div class="well">
+<a href={{=URL('create_job')}} class="btn btn-primary" style="float: right;margin-right:10px;margin-bottom:10px;">Crear Nuevo Job</a>    
+<div>
+<table class="table">
+    {{for row in rows:}}
+    <tr>
+        <td><a href={{=URL('job',args=row.id)}}>{{=row.nombre}}</a></td>
+        <td>{{=row.created_on }} </td>
+        <td>{{= row.created_by.first_name + ' '+ row.created_by.last_name }}</td>
+     </tr>
+    {{pass}}
+</table>
+    </div>
+
+</div>

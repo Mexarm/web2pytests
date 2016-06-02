@@ -1,0 +1,22 @@
+{{extend 'layout.html'}}
+<h1>Job {{='(' + str(thisjob.id) + ')' }}</h1>
+<h2>
+     {{=thisjob.nombre}}
+</h2>
+<p>Creado por: {{= thisjob.created_by.first_name + ' ' + thisjob.created_by.last_name + ' on ' + str(thisjob.created_on)}} </p>
+<div class="well">
+    {{=thisjob.separador_reg}}
+    {{=thisjob.separador_men}}
+    {{=thisjob.comentario}}
+</div>
+
+<div class="well">
+    {{=tasks}}
+</div>
+<p>{{=record_count}} registros </p>
+<a href={{=URL('upload_records',args=['registro',thisjob.id]) }}>subir <b>registros</b> para este job</a><br>
+<a href={{=URL('upload_records',args=['mensaje',thisjob.id]) }}>subir <b>mensajes</b> para este job</a><br>
+<a href={{=URL('comunicados',args=thisjob.id) }}>ver comunicados de este job</a><br>
+<a href={{=URL('mensajes',args=thisjob.id) }}>ver mensajes de este job</a><br>
+<a href={{=URL('asignaciones',args=thisjob.id)}}>asignaciones</a><br>
+<a href={{=URL('jobs') }}>atras</a>

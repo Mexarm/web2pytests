@@ -1,0 +1,205 @@
+timestamp: 2014-12-16T09:07:46.186855
+CREATE TABLE auth_user(
+    id INT AUTO_INCREMENT NOT NULL,
+    first_name VARCHAR(128),
+    last_name VARCHAR(128),
+    email VARCHAR(512),
+    password VARCHAR(512),
+    registration_key VARCHAR(512),
+    reset_password_key VARCHAR(512),
+    registration_id VARCHAR(512),
+    PRIMARY KEY (id)
+) ENGINE=InnoDB CHARACTER SET utf8;
+success!
+timestamp: 2014-12-16T09:07:46.272236
+CREATE TABLE auth_group(
+    id INT AUTO_INCREMENT NOT NULL,
+    role VARCHAR(512),
+    description LONGTEXT,
+    PRIMARY KEY (id)
+) ENGINE=InnoDB CHARACTER SET utf8;
+success!
+timestamp: 2014-12-16T09:07:46.360795
+CREATE TABLE auth_membership(
+    id INT AUTO_INCREMENT NOT NULL,
+    user_id INT, INDEX user_id__idx (user_id), FOREIGN KEY (user_id) REFERENCES auth_user (id) ON DELETE CASCADE,
+    group_id INT, INDEX group_id__idx (group_id), FOREIGN KEY (group_id) REFERENCES auth_group (id) ON DELETE CASCADE,
+    PRIMARY KEY (id)
+) ENGINE=InnoDB CHARACTER SET utf8;
+success!
+timestamp: 2014-12-16T09:07:46.483773
+CREATE TABLE auth_permission(
+    id INT AUTO_INCREMENT NOT NULL,
+    group_id INT, INDEX group_id__idx (group_id), FOREIGN KEY (group_id) REFERENCES auth_group (id) ON DELETE CASCADE,
+    name VARCHAR(512),
+    table_name VARCHAR(512),
+    record_id INT,
+    PRIMARY KEY (id)
+) ENGINE=InnoDB CHARACTER SET utf8;
+success!
+timestamp: 2014-12-16T09:07:46.590048
+CREATE TABLE auth_event(
+    id INT AUTO_INCREMENT NOT NULL,
+    time_stamp DATETIME,
+    client_ip VARCHAR(512),
+    user_id INT, INDEX user_id__idx (user_id), FOREIGN KEY (user_id) REFERENCES auth_user (id) ON DELETE CASCADE,
+    origin VARCHAR(512),
+    description LONGTEXT,
+    PRIMARY KEY (id)
+) ENGINE=InnoDB CHARACTER SET utf8;
+success!
+timestamp: 2014-12-16T09:07:46.711420
+CREATE TABLE auth_cas(
+    id INT AUTO_INCREMENT NOT NULL,
+    user_id INT, INDEX user_id__idx (user_id), FOREIGN KEY (user_id) REFERENCES auth_user (id) ON DELETE CASCADE,
+    created_on DATETIME,
+    service VARCHAR(512),
+    ticket VARCHAR(512),
+    renew CHAR(1),
+    PRIMARY KEY (id)
+) ENGINE=InnoDB CHARACTER SET utf8;
+success!
+timestamp: 2014-12-16T09:07:46.848394
+CREATE TABLE job(
+    id INT AUTO_INCREMENT NOT NULL,
+    nombre VARCHAR(512),
+    separador_reg VARCHAR(512),
+    separador_men VARCHAR(512),
+    comentario LONGTEXT,
+    tasks LONGTEXT,
+    is_active CHAR(1),
+    created_on DATETIME,
+    created_by INT, INDEX created_by__idx (created_by), FOREIGN KEY (created_by) REFERENCES auth_user (id) ON DELETE CASCADE,
+    modified_on DATETIME,
+    modified_by INT, INDEX modified_by__idx (modified_by), FOREIGN KEY (modified_by) REFERENCES auth_user (id) ON DELETE CASCADE,
+    PRIMARY KEY (id)
+) ENGINE=InnoDB CHARACTER SET utf8;
+success!
+timestamp: 2014-12-16T09:07:47.025225
+CREATE TABLE registro(
+    id INT AUTO_INCREMENT NOT NULL,
+    agencia VARCHAR(512),
+    comunicacion VARCHAR(512),
+    numcte VARCHAR(512),
+    paterno VARCHAR(512),
+    materno VARCHAR(512),
+    nombre VARCHAR(512),
+    marca VARCHAR(512),
+    modelo VARCHAR(512),
+    sexo VARCHAR(512),
+    calle VARCHAR(512),
+    cp VARCHAR(512),
+    col VARCHAR(512),
+    mpio VARCHAR(512),
+    edo VARCHAR(512),
+    ciudad VARCHAR(512),
+    idqueja VARCHAR(512),
+    folio VARCHAR(512),
+    directormarca VARCHAR(512),
+    gtegeneral VARCHAR(512),
+    segmentosinserto VARCHAR(512),
+    seq INT,
+    comms LONGTEXT,
+    job INT, INDEX job__idx (job), FOREIGN KEY (job) REFERENCES job (id) ON DELETE CASCADE,
+    PRIMARY KEY (id)
+) ENGINE=InnoDB CHARACTER SET utf8;
+success!
+timestamp: 2014-12-16T09:07:47.761875
+CREATE TABLE mensaje(
+    id INT AUTO_INCREMENT NOT NULL,
+    descripcion VARCHAR(512),
+    texto LONGTEXT,
+    typecode VARCHAR(512),
+    job INT, INDEX job__idx (job), FOREIGN KEY (job) REFERENCES job (id) ON DELETE CASCADE,
+    PRIMARY KEY (id)
+) ENGINE=InnoDB CHARACTER SET utf8;
+success!
+timestamp: 2014-12-16T09:07:47.887559
+CREATE TABLE comunicacion(
+    id INT AUTO_INCREMENT NOT NULL,
+    nombre VARCHAR(512),
+    frecuencia INT,
+    job INT, INDEX job__idx (job), FOREIGN KEY (job) REFERENCES job (id) ON DELETE CASCADE,
+    PRIMARY KEY (id)
+) ENGINE=InnoDB CHARACTER SET utf8;
+success!
+timestamp: 2014-12-16T09:07:48.088112
+CREATE TABLE comunicacion_y_mensaje(
+    id INT AUTO_INCREMENT NOT NULL,
+    condicional CHAR(1),
+    condicion VARCHAR(512),
+    comunicacion INT, INDEX comunicacion__idx (comunicacion), FOREIGN KEY (comunicacion) REFERENCES comunicacion (id) ON DELETE CASCADE,
+    mensaje INT, INDEX mensaje__idx (mensaje), FOREIGN KEY (mensaje) REFERENCES mensaje (id) ON DELETE CASCADE,
+    is_active CHAR(1),
+    created_on DATETIME,
+    created_by INT, INDEX created_by__idx (created_by), FOREIGN KEY (created_by) REFERENCES auth_user (id) ON DELETE CASCADE,
+    modified_on DATETIME,
+    modified_by INT, INDEX modified_by__idx (modified_by), FOREIGN KEY (modified_by) REFERENCES auth_user (id) ON DELETE CASCADE,
+    PRIMARY KEY (id)
+) ENGINE=InnoDB CHARACTER SET utf8;
+success!
+timestamp: 2014-12-16T09:07:48.617128
+CREATE TABLE scheduler_task(
+    id INT AUTO_INCREMENT NOT NULL,
+    application_name VARCHAR(512),
+    task_name VARCHAR(512),
+    group_name VARCHAR(512),
+    status VARCHAR(512),
+    function_name VARCHAR(512),
+    uuid VARCHAR(255) UNIQUE,
+    args LONGTEXT,
+    vars LONGTEXT,
+    enabled CHAR(1),
+    start_time DATETIME,
+    next_run_time DATETIME,
+    stop_time DATETIME,
+    repeats INT,
+    retry_failed INT,
+    period INT,
+    prevent_drift CHAR(1),
+    timeout INT,
+    sync_output INT,
+    times_run INT,
+    times_failed INT,
+    last_run_time DATETIME,
+    assigned_worker_name VARCHAR(512),
+    PRIMARY KEY (id)
+) ENGINE=InnoDB CHARACTER SET utf8;
+success!
+timestamp: 2014-12-16T09:07:48.741110
+CREATE TABLE scheduler_run(
+    id INT AUTO_INCREMENT NOT NULL,
+    task_id INT, INDEX task_id__idx (task_id), FOREIGN KEY (task_id) REFERENCES scheduler_task (id) ON DELETE CASCADE,
+    status VARCHAR(512),
+    start_time DATETIME,
+    stop_time DATETIME,
+    run_output LONGTEXT,
+    run_result LONGTEXT,
+    traceback LONGTEXT,
+    worker_name VARCHAR(512),
+    PRIMARY KEY (id)
+) ENGINE=InnoDB CHARACTER SET utf8;
+success!
+timestamp: 2014-12-16T09:07:48.842926
+CREATE TABLE scheduler_worker(
+    id INT AUTO_INCREMENT NOT NULL,
+    worker_name VARCHAR(255) UNIQUE,
+    first_heartbeat DATETIME,
+    last_heartbeat DATETIME,
+    status VARCHAR(512),
+    is_ticker CHAR(1),
+    group_names LONGTEXT,
+    worker_stats LONGTEXT,
+    PRIMARY KEY (id)
+) ENGINE=InnoDB CHARACTER SET utf8;
+success!
+timestamp: 2014-12-16T09:07:48.931335
+CREATE TABLE scheduler_task_deps(
+    id INT AUTO_INCREMENT NOT NULL,
+    job_name VARCHAR(512),
+    task_parent INT,
+    task_child INT, INDEX task_child__idx (task_child), FOREIGN KEY (task_child) REFERENCES scheduler_task (id) ON DELETE CASCADE,
+    can_visit CHAR(1),
+    PRIMARY KEY (id)
+) ENGINE=InnoDB CHARACTER SET utf8;
+success!

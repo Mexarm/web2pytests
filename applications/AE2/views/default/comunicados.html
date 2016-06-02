@@ -1,0 +1,17 @@
+{{extend 'layout.html'}}
+<h1>Comunicados job {{=jobid}}</h1>
+<h2>
+    se encontraron {{=rowcount}} diferentes
+</h2>
+<div class="well">
+<table class="table">
+     {{i=1}}
+      {{sum=0}}
+    {{for r in rows:}}
+  <tr><td>{{=str(i)}}</td><td>{{=r.nombre}}</td><td>{{=r.frecuencia}}</td><td><a href={{=URL('asignar',args=r.id)}}> asignar</a></td></tr>
+      {{sum += r.frecuencia }} 
+    {{i+=1}}
+    {{pass}}
+     <tr><td></td><td></td><td>{{= 'Suma: ' + str(sum) }}</td></tr>
+    </table>
+</div>

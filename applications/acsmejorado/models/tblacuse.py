@@ -1,0 +1,16 @@
+# -*- coding: utf-8 -*-
+db.define_table('acuse',
+                Field('codigo','string',length=8,notnull=True,unique=True,requires=[IS_NOT_EMPTY(),IS_NOT_IN_DB(db,'acuse.codigo'),IS_LENGTH(8)]),
+                Field('indica','string'),
+                Field('indfia','string'),
+                Field('nombre','string'),
+                Field('dom','string'),
+                Field('col','string'),
+                Field('cp','string'),
+                Field('pob','string'),
+                Field('edo','string'),
+                Field('cr','string'),
+                Field('coorgx','string'),
+                Field('coorgy','string'),
+                Field('esgxy','string'),
+                auth.signature)

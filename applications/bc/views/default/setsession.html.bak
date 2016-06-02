@@ -1,0 +1,24 @@
+{{extend 'layout.html'}}
+<h3>Seleccione Sesion de Escaneo</h3>
+<div class="well">
+<table>
+{{for r in rows:}}
+  <tr>
+      {{if r.estado == 'escaneando':}}
+         <td><a href="{{=URL('setsession',args=r.id)}}">{{=str(r.id)+ ' ' + r.descripcion}}</a></td>
+      {{else:}}
+         <td>{{=str(r.id)+ ' ' + r.descripcion}}</td>
+      {{pass}}
+      <td>{{=db.tiposesion(r.tiposesion).descripcion}}</td>
+      <td>{{=prettydate( r.modified_on,T)}}</td>
+      <td>{{=r.estado}}</td>
+  </tr>
+{{pass}}
+</table>
+    <div>
+        <a href="{{=URL('sesion')}}">Crear Nueva Sesion de Escaneo</a>
+        </div>
+    <div>
+     <a href="{{=URL('crear_tiposesion')}}">Crear Nuevo Tipo de Sesion</a>
+        </div>
+</div>

@@ -1,0 +1,40 @@
+{{extend 'layout.html'}}
+<h1>Scanner</h1>
+
+<div>
+    
+
+{{=form.custom.begin}}
+
+Caja={{=form.custom.widget.container}}:
+
+
+
+
+    {{=form.custom.widget.barcode1}}
+{{=form.custom.widget.barcode2}}
+
+
+{{=form.custom.submit}}
+
+{{=form.custom.end}}
+</div>
+
+<script>
+ $( document ).ready(function() {
+  $( "#barcode1" ).focus();
+});
+    
+ function focusNext(form, elemName, evt) {
+    evt = (evt) ? evt : event;
+    var charCode = (evt.charCode) ? evt.charCode :
+        ((evt.which) ? evt.which : evt.keyCode);
+    if (charCode == 13 || charCode == 3) {
+        form.elements[elemName].focus( );
+        return false;
+    }
+    return true;
+}
+
+
+</script>

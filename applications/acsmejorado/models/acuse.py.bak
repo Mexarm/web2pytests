@@ -1,0 +1,13 @@
+# -*- coding: utf-8 -*-
+db.define_table('acuse',
+                Field('acscode','string',length=100,notnull=True,unique=True,requires=[IS_NOT_EMPTY(),IS_NOT_IN_DB(db,'acuse.acscode'),IS_LENGTH(20)]),
+                Field('acsdir1','string',length=100,notnull=True,requires=[IS_NOT_EMPTY()]),
+                Field('acsdir2','string'),
+                Field('acscol','string'),
+                Field('acscp','string'),
+                Field('acspob','string'),
+                Field('acsedo','string'),
+                Field('acscoorgx','string'),
+                Field('acscoorgy','string'),
+                Field('esg-xy','string'),
+                auth.signature)

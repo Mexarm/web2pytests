@@ -1,0 +1,22 @@
+{{extend 'layout.html'}}
+<style>
+textarea
+{
+  cursor:default !important;
+  resize: none;
+}
+</style>
+<h1>Mensajes job {{=jobid}}</h1>
+<h2>
+    {{=rowcount}} Mensajes
+</h2>
+<div class="well">
+    
+<table class="table">
+     {{i=1}}
+    {{for r in rows:}}
+    <tr><td>{{=str(i)}}</td><td>{{=r.descripcion}}</td><td>{{=r.typecode}}<td><textarea disabled="disabled" readonly="readonly" rows={{= (len(r.texto) / 55 ) + (r.texto).count('\\n') + 1 }} cols=55>{{=(r.texto).replace('\\n','\n')}}</textarea></td></tr>
+    {{i+=1}}
+    {{pass}}
+    </table>
+</div>

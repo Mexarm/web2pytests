@@ -1,0 +1,46 @@
+# -*- coding: utf-8 -*-
+db.define_table('tiposesion',
+                Field('descripcion','string',length=100),
+                Field('longitud','integer'),
+                Field('comentario','text',length=255),
+                auth.signature,
+                format='%(descripcion)s')
+
+db.define_table('estadosesion',
+                Field('estado','string',length=20,notnull=True, unique=True, requires=[IS_NOT_EMPTY(),IS_SLUG(),IS_NOT_IN_DB(db,'estadosesion.estado')]),
+                auth.signature,
+                format='%(estado)s')
+
+db.define_table('sesion',
+                Field('tiposesion','reference tiposesion', notnull=True, requires=IS_IN_DB(db,'tiposesion.id','%(descripcion)s')),
+                Field('descripcion','string',length=100),
+                Field('comentario','text',length=255),
+                Field('estado','reference estadosesion',requires=IS_IN_DB(db,'estadosesion.id','%(estado)s')),
+                Field('fnc_validacion','string',length=255),
+                auth.signature)
+
+db.define_table('barcode',
+                Field('codigo','string',length=100,notnull=True,unique=True,requires=[IS_NOT_EMPTY(),IS_NOT_IN_DB(db,'barcode.codigo')]),
+                Field('sesion','reference sesion'),
+                auth.signature)
+
+#if db(db.estadosesion.id>0).count() == 0:
+#    ESTADO = ['escaneando', 'cerrada', 'procesada']
+#    for e in ESTADO:
+#        db.estadosesion.insert(estado = e)
+#    db.commit()
+
+roles = [ 'capturar', 'procesar']
+for r in roles:
+    if db(db.auth_group.role == r).count() == 0:
+        db.auth_group.insert(role=r)
+        db.commit()
+
+def validate_codigo(form):
+    if session.sesion:
+        sesion = db.sesion(session.sesion)
+        longitud=sesion.tiposesion.longitud
+        if len(form.vars.codigo)!=longitud:
+            form.errors.codigo = 'Longitud Incorrecta ' + str(len(form.vars.codigo)) + ' debe ser de: ' + str(longitud)
+    else:
+        form.errors.sesion = 'sesion invalida:' + str(form.vars.sesion)

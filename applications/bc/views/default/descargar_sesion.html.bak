@@ -1,0 +1,6 @@
+{{extend 'layout.html'}}
+<h3>Descargar archivo de sesion de escaneo</h3>
+<p>
+    Sesion <b> {{= '(' + str(session.sesion.id) + ') ' + session.sesion.descripcion}} con {{=str(count)}} piezas.</b> <br>
+</i></p>
+{{=form}}

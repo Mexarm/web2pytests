@@ -1,0 +1,128 @@
+# -*- coding: utf-8 -*-
+# this file is released under public domain and you can use without limitations
+
+#########################################################################
+## This is a sample controller
+## - index is the default action of any application
+## - user is required for authentication and authorization
+## - download is for downloading files uploaded in the db (does streaming)
+## - api is an example of Hypermedia API support and access control
+#########################################################################
+
+def index():
+    redirect(URL('jobs'))
+    return
+    
+@auth.requires_membership('administradores')
+def jobs():
+    """
+    lista de jobs
+    """
+    rows = db(db.job).select(orderby=db.job.created_on)
+    return locals()
+@auth.requires_membership('administradores')
+def job():
+    thisjob=db.job(request.args(0,cast=int))
+    record_count=db(db.registro.job==thisjob.id).count()
+    return locals()
+
+@auth.requires_membership('administradores')
+def create_job():
+    form=SQLFORM(db.job).process()
+    if form.accepted:
+        session.flash='Job Guardado!'
+    elif form.errors:
+        response.flash='Por favor revise la forma'
+    return locals()
+
+@auth.requires_membership('administradores')
+def upload_records():
+    table =request.args(0)
+    jobid=request.args(1,cast=int)
+    db[table].job.default=jobid
+    form = FORM(INPUT(_type='file', _name='data'), INPUT(_type='submit'))
+    if form.process().accepted:
+        db[table].import_from_csv_file(form.vars.data.file,unique=False)
+        #session.flash = 'job ' + str(jobid) + ' tiene ' + str(db(db.registros.job==jobid).count())
+        redirect(URL('job',args=jobid))
+    return locals()
+
+@auth.requires_membership('administradores')
+def comunicados():
+    jobid=request.args(0,cast=int)
+    #rows = db(db.registros.job==jobid).select(db.registros.comunicacion,distinct=True)
+    count = 1
+    rows = db().select(db.registro.comunicacion, count, groupby = db.registro.comunicacion, orderby =~count)
+    rowcount=len(rows)
+    return locals()
+
+@auth.requires_membership('administradores')
+def mensajes():
+    jobid=request.args(0,cast=int)
+    rows = db(db.mensaje.job==jobid).select()
+    rowcount=len(rows)
+    return locals()
+
+def __populate_comunicacion_for_job(j):
+    #count = db.registro.comunicacion.count()
+    db.comunicacion.job.default=j
+    query = db.registro.job == j
+    rows = db(query).select(db.registro.job, db.registro.comunicacion, count, groupby = db.registro.comunicacion, orderby =~count)
+    for r in rows:
+        db.comunicado.insert(nombre=r.registro.comunicacion)
+    
+    rowcount=len(rows)
+    return locals()
+
+
+
+
+
+def user():
+    """
+    exposes:
+    http://..../[app]/default/user/login
+    http://..../[app]/default/user/logout
+    http://..../[app]/default/user/register
+    http://..../[app]/default/user/profile
+    http://..../[app]/default/user/retrieve_password
+    http://..../[app]/default/user/change_password
+    http://..../[app]/default/user/manage_users (requires membership in
+    use @auth.requires_login()
+        @auth.requires_membership('group name')
+        @auth.requires_permission('read','table name',record_id)
+    to decorate functions that need access control
+    """
+    return dict(form=auth())
+
+
+@cache.action()
+def download():
+    """
+    allows downloading of uploaded files
+    http://..../[app]/default/download/[filename]
+    """
+    return response.download(request, db)
+
+
+def call():
+    """
+    exposes services. for example:
+    http://..../[app]/default/call/jsonrpc
+    decorate with @services.jsonrpc the functions to expose
+    supports xml, json, xmlrpc, jsonrpc, amfrpc, rss, csv
+    """
+    return service()
+
+
+@auth.requires_login() 
+def api():
+    """
+    this is example of API with access control
+    WEB2PY provides Hypermedia API (Collection+JSON) Experimental
+    """
+    from gluon.contrib.hypermedia import Collection
+    rules = {
+        '<tablename>': {'GET':{},'POST':{},'PUT':{},'DELETE':{}},
+        }
+    return Collection(db).process(request,response,rules)

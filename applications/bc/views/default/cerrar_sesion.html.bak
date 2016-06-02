@@ -1,0 +1,7 @@
+{{extend 'layout.html'}}
+<h3>Confirmacion para terminar de Escanear</h3>
+<p>
+    Desea cerrar la sesion <b> {{= '(' + str(session.sesion.id) + ') ' + session.sesion.descripcion}} con {{=str(count)}} piezas ? </b> <br>
+    <i>(Despues de cerrar la sesion ya no podra escanear mas piezas en ella)
+</i></p>
+{{=form}}

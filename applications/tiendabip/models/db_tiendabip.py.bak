@@ -1,0 +1,88 @@
+# -*- coding: utf-8 -*-
+
+MAX_SALE_PRICE = 1e100
+
+db.define_table('item',
+                Field('code','string',notnull=True,unique=True),
+                Field('description','string',notnull=True),
+                Field('sale_price','double',notnull=True),
+                Field('purchase_cost','double'),
+                Field('reference','string'),
+                Field('is_active','boolean', default= True),
+                Field('for_sale','boolean', default=True), # is this item is for sale (True | False)
+                Field('on_hand_qty','integer'),
+                Field('selled_qty','integer'),
+                Field('purchased_qty','integer'),
+                Field('sale_tax','double'),
+                Field('purchase_tax','double'),
+                auth.signature)
+
+db.define_table('branch',
+                Field('code','string',notnull=True,unique=True),
+                Field('name','string'),
+                Field('address','text'),
+                auth.signature)
+
+db.define_table('pos',
+                Field('name','string',notnull=True,unique=True),
+                Field('loc','text'), #Location
+                Field('notes','string'),
+                Field('MAC','string'),
+                Field('branch','reference branch'),
+                Field('msg','list:string'),
+                Field('peripherals','list:reference peripheral'),
+                auth.signature)
+
+db.define_table('pos_session',
+                Field('opening_timestamp','datetime'),
+                Field('closing_timestamp','datetime'),
+                Field('deposits','double'),
+                Field('withdrawals','double'),
+                Field('sales','double'),
+                Field('notes','text'),
+                Field('pos','reference pos'),
+                auth.signature)
+
+db.define_table('ticket',
+                Field('subtotal','double'),
+                Field('tax','double'),
+                Field('total','double'),
+                Field('payment','double'),
+                Field('change_due','double'),
+                Field('item_count','integer'),
+                Field('status','string'),
+                Field('pos_session','reference pos_session'),
+                auth.signature)
+
+db.define_table('ticket_entry',
+                Field('item','reference item'),
+                Field('ticket','reference ticket'),
+                Field('quantity','double'),
+                Field('item_code','string'),
+                Field('item_description','double'),
+                Field('item_sale_cost','double'),
+                Field('discount_factor','double',default=1), # eg. could be -1 to discount the item or 0.5 to apply a promotion
+                Field('line','integer'), # line number in the ticket
+                Field('related_items','list:integer', default =[] ), # reference other items in the ticket associated  (for cancellations for example),
+                auth.signature)
+
+db.define_table('uom',
+                Field('name','string'),
+                Field('abbreviation','string',notnull=True,unique=True),
+                Field('sources','list:string'),
+                auth.signature)
+
+db.define_table('peripheral',
+                Field('name','string'),
+                Field('param','string'),
+                auth.signature)
+
+db.item.code.requires = [IS_NOT_EMPTY(),IS_SLUG(),IS_NOT_IN_DB(db,'item.code')]
+db.item.description.requires= IS_NOT_EMPTY()
+db.item.sale_price.requires = IS_FLOAT_IN_RANGE(0,MAX_SALE_PRICE)
+
+
+
+def validate_item_form(form):
+    if form.vars.sale_price and form.vars.purchase_cost and (form.vars.sale_price < form.vars.purchase_cost):
+        form.errors.purchase_cost='purchase cost cannot be greater than sale price'

@@ -1,0 +1,175 @@
+# -*- coding: utf-8 -*-
+# this file is released under public domain and you can use without limitations
+
+#########################################################################
+## This is a sample controller
+## - index is the default action of any application
+## - user is required for authentication and authorization
+## - download is for downloading files uploaded in the db (does streaming)
+## - api is an example of Hypermedia API support and access control
+#########################################################################
+def index():
+    redirect(URL('jobs'))
+    return
+
+@auth.requires_membership('administradores')
+def jobs():
+    """
+    lista de jobs
+    """
+    rows = db(db.job).select(orderby=db.job.created_on)
+    return locals()
+@auth.requires_membership('administradores')
+def job():
+    thisjob=db.job(request.args(0,cast=int))
+    tasks=db(db.scheduler_task.id.belongs( thisjob.tasks)).select() if thisjob.tasks else None
+    record_count=db(db.registro.job==thisjob.id).count()
+    return locals()
+
+@auth.requires_membership('administradores')
+def create_job():
+    form=SQLFORM(db.job).process()
+    if form.accepted:
+        session.flash='Job Guardado!'
+        redirect(URL('jobs'))
+    elif form.errors:
+        response.flash='Por favor revise la forma'
+    return locals()
+
+@auth.requires_membership('administradores')
+def upload_records():
+    table =request.args(0)
+    jobid=request.args(1,cast=int)
+    db[table].job.default=jobid
+    job = db.job(jobid)
+    form = FORM(INPUT(_type='file', _name='data'), INPUT(_type='submit'))
+    if form.process().accepted:
+        ufile = db.registro.job.store(form.vars.data.file,form.vars.data.filename)
+        ret = scheduler.queue_task(upload_file,pvars=dict(jobid=jobid,tablename=table,csvfile=ufile),timeout=3600)
+        tasks = job.tasks + [ret.id] if job.tasks else [ret.id]
+        db(db.job.id==jobid).update(tasks=tasks)
+        session.flash =  'Upload Task Created for file: ' + form.vars.data.filename
+        redirect(URL('job',args=jobid))
+    return locals()
+
+@auth.requires_membership('administradores')
+def comunicados():
+    jobid=request.args(0,cast=int)
+    __populate_comunicado_for_job(jobid)
+    rows = db(db.comunicacion.job==jobid).select()
+    rowcount = len(rows)
+    return locals()
+
+@auth.requires_membership('administradores')
+def mensajes():
+    jobid=request.args(0,cast=int)
+    rows = db(db.mensaje.job==jobid).select()
+    rowcount=len(rows)
+    return locals()
+
+def asignar():
+    cid=request.args(0,cast=int)
+    #comunicacion = db(db.comunicacion.id==cid).select()[0]
+    comunicacion = db.comunicacion(cid)
+    jobid=comunicacion.job
+    thisjobcids=[ r.id for r in db(db.comunicacion.job==comunicacion.job).select() ]
+    
+    cidprev=thisjobcids[0]
+    cidnext=thisjobcids[-1]
+    nombreprev=''
+    nombrenext=''
+    if cid - 1 in thisjobcids:
+        cidprev = cid-1
+        nombreprev = db.comunicacion[cidprev].nombre
+    if cid + 1 in thisjobcids: 
+        cidnext = cid+1
+        nombrenext = db.comunicacion[cidnext].nombre
+    i = thisjobcids.index(comunicacion.id)+1
+    total = len (thisjobcids)
+    
+    typecodes = [ '10-BIENVENIDA','20-CUERPO','30-ANIVERSARIO','40-DESPEDIDA' ]
+    msj = [ (q,q.split('-')[1],db((db.mensaje.job==jobid) & (db.mensaje.typecode == q)).select()) for q in typecodes ]
+    components=[]
+    defoption1 = [OPTION('(vacio)', _value='vacio')]
+    defoption1 += [OPTION('(condicion)', _value='condicion')]
+    
+    for t in msj:
+        rows = t[2]
+        components.append(t[1])
+        components.append(LI(SELECT(_name=t[1],*(defoption1+[OPTION(j.descripcion, _value=str(j.id)) for j in rows]))))
+        components.append(INPUT(_name='expresion_' + t[1]))
+        components.append(XML("<br>"))
+    form = FORM (INPUT(_type='submit'),XML("<br><br>"),
+                       *components,
+                       _method='post',
+                       _action='')
+    
+    if form.accepts(request,session):
+        for t in msj:
+            ci=form.vars[t[1]] 
+            if not (ci in ['vacio','condicion']):
+                db.comunicacion_y_mensaje.insert(comunicacion=comunicacion,mensaje=int(form.vars[t[1]]))
+            elif form.vars[t[1]] == 'condicion':
+                db.comunicacion_y_mensaje.insert(condicional=True,condicion=form.vars['expresion_'+t[1]],
+                                                 comunicacion=comunicacion)
+        #db.comunicacion_y_mensaje.insert(comunicacion=comunicacion,mensaje=int(form.vars.BIENVENIDA))
+        #db.comunicacion_y_mensaje.insert(comunicacion=comunicacion,mensaje=int(form.vars.CUERPO))
+        #db.comunicacion_y_mensaje.insert(comunicacion=comunicacion,mensaje=int(form.vars.ANIVERSARIO))
+        #db.comunicacion_y_mensaje.insert(comunicacion=comunicacion,mensaje=int(form.vars.DESPEDIDA))
+        
+        response.flash = 'guardado'
+    elif form.errors:
+        response.flash = 'Verifique los campos'
+        
+    
+    return locals()
+
+
+def user():
+    """
+    exposes:
+    http://..../[app]/default/user/login
+    http://..../[app]/default/user/logout
+    http://..../[app]/default/user/register
+    http://..../[app]/default/user/profile
+    http://..../[app]/default/user/retrieve_password
+    http://..../[app]/default/user/change_password
+    http://..../[app]/default/user/manage_users (requires membership in
+    use @auth.requires_login()
+        @auth.requires_membership('group name')
+        @auth.requires_permission('read','table name',record_id)
+    to decorate functions that need access control
+    """
+    return dict(form=auth())
+
+
+@cache.action()
+def download():
+    """
+    allows downloading of uploaded files
+    http://..../[app]/default/download/[filename]
+    """
+    return response.download(request, db)
+
+
+def call():
+    """
+    exposes services. for example:
+    http://..../[app]/default/call/jsonrpc
+    decorate with @services.jsonrpc the functions to expose
+    supports xml, json, xmlrpc, jsonrpc, amfrpc, rss, csv
+    """
+    return service()
+
+
+@auth.requires_login()
+def api():
+    """
+    this is example of API with access control
+    WEB2PY provides Hypermedia API (Collection+JSON) Experimental
+    """
+    from gluon.contrib.hypermedia import Collection
+    rules = {
+        '<tablename>': {'GET':{},'POST':{},'PUT':{},'DELETE':{}},
+        }
+    return Collection(db).process(request,response,rules)
